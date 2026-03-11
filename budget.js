@@ -1,83 +1,66 @@
+let choice = {};
+const medicare = document.getElementById("medicare");
+const socialSecurity = document.getElementById("SS");
+const federalTax = document.getElementById("federal");
+const stateTax = document.getElementById("state");
+const careerInfo = document.getElementById("career");
 
-
-
-const housing = document.getElementById("housing"); //accessing input forms
-const essentials = document.getElementById("essentials");
-const loans = document.getElementById("student-loans");
-const life = document.getElementById("life-style");
-const savings = document.getElementById("future-proofing");
-const url = 'https://eecu-data-server.vercel.app/data';
-//figure out a method to grab the cost values and add them up for total expenses, be careful of addition errors
-//possible solution: create variables and reassign to cost values in function
-//let housingPrice = 0;
-//let totalPrice = housingPrice + 
-
-async function data() {
-    const url = 'https://eecu-data-server.vercel.app/data';
-    let list = [];
-
+async function getCareers() {
+    const url = "https://eecu-data-server.vercel.app/data";
     try {
-        const jobs = await fetch(url);
-        for (let i = 0; i < jobs.length; i++) {
-            const job = jobs[i];
-            const occupation = job.Occupation;
-            const salary = job.Salary;
-            list.push({
-                Occupation: occupation,
-                Salary: salary
-            });
-        
-    } console.log(list);
-    } catch (err) {
-        console.error('Error fetching data:', err);
+        const response = await fetch(url);
+        const jobs = await response.json();
+        createOptions(jobs);
+        return jobs;
+    } catch (error) {
+        console.error("Error fetching careers data:", error);
+        return [];
     }
-
-} //side note: the two attrivutes per object is .Occupation and .Salary
-console.log(data());
-
-housing.addEventListener("input", (form) => {
-    const div = document.getElementById("housingCost");
-    let cost = form.target.value;
-
-    div.innerHTML = `${cost}`;
-    housingPrice = cost;
 }
-)
 
-essentials.addEventListener("input", (form) => {
-    const div = document.getElementById("essentialsCost");
-    let cost = form.target.value;
+function createOptions(careers) {
+    const dropdown = document.getElementById("careers");
 
-    div.innerHTML = `${cost}`;
+    // Create the options
+    careers.forEach((career, index) => {
+        const option = document.createElement("option");
+        option.innerHTML = `${career.Occupation}: $${career.Salary}`;
+        option.value = index; // Store the array index as the value
+        option.classList.add("option");
+        dropdown.appendChild(option);
+    });
+
+    // Listen for the dropdown value to change
+    dropdown.addEventListener("change", (event) => {
+        const selectedIndex = event.target.value;
+        
+        // Update the choice object using the selected index
+        choice.Occupation = careers[selectedIndex].Occupation;
+        choice.Salary = careers[selectedIndex].Salary;
+        
+        saveChoice(choice);
+        displayCareerInfo(choice);
+        console.log(choice);
+    });
 }
-)
 
-loans.addEventListener("input", (form) => {
-    const div = document.getElementById("loansCost");
-    let cost = form.target.value;
-
-    div.innerHTML = `${cost}`;
+function saveChoice(choice) {
+    let savedChoice = JSON.stringify(choice);
+    localStorage.setItem("choices", savedChoice);
+    console.log("Choice saved:", choice);
 }
-)
 
-life.addEventListener("input", (form) => {
-    const div = document.getElementById("lifestyleCost");
-    let cost = form.target.value;
-
-    div.innerHTML = `${cost}`;
+function loadChoice() {
+    let savedChoices = JSON.parse(localStorage.getItem("choices")) || {};
+    choice = savedChoices;
 }
-)
 
-savings.addEventListener("input", (form) => {
-    const div = document.getElementById("futureCost");
-    let cost = form.target.value;
-
-    div.innerHTML = `${cost}`;
+function displayCareerInfo(choice) {
+    careerInfo.innerHTML = `Occupation: ${choice.Occupation}<br>Salary: $${choice.Salary}`;
 }
-)
 
-// async function getCareer(url) {
-//     const response = await fetch("https://eecu-data-server.vercel.app/data/2023");
-//     const e = await response.json(url);
-//     return e;
-// }
+
+
+loadChoice();
+displayCareerInfo(choice);
+getCareers();
